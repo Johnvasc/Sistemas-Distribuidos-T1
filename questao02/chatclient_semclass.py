@@ -94,59 +94,64 @@ while True:
                     print('Entendo, até mais!')
                     exit()
 
+#ISSO É UM TIRO NO PÉ, O SERVER TEM QUE ESTÁ ONLINE ANTES DISSO
+#SENAO ELE PEDE O NICKNAME SEM O SERVER ESTAR ONLINE
 print('Conectado ao servidor!')
 
-class Cliente():
+nickname = input('Choose a nickname: ')
 
-    nick = input('Choose a nickname: ')
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((str(server_ip), int(server_port)))
 
-    # Ja que o usuario chegou até aqui, o host e port podem ser fixos
-    def __init__(self, host='localhost', port=12345):
+#receive_thread = threading.Thread(target=self.receive)
+#receive_thread.daemon = True
+#receive_thread.start()
+#write_thread = threading.Thread(target=self.write)
+#write_thread.daemon = True
+#write_thread.start()
 
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect((str(host), int(port)))
-        self.nickname = self.nick.encode('utf-8')
+def receive():
+    while True:
+        try:
+            #print('aaa')
+            message = client.recv(1024).decode('utf-8')
+            #print(message)
+            #print('bbb')
+            if message == 'NICK':
+                #print('aaaaaaaaaaaaaa')
+                client.send(nickname.encode('utf-8'))
 
-        #receive_thread = threading.Thread(target=self.receive)
-        #receive_thread.daemon = True
-        #receive_thread.start()
-        #write_thread = threading.Thread(target=self.write)
-        #write_thread.daemon = True
-        #write_thread.start()
+            else:
+                print(message)
+        except:
+            print('And error occurred!')
+            client.close()
+            break
 
-    def receive(self):
-        while True:
-            try:
-                #print('aaa')
-                message = self.client.recv(1024).decode('utf-8')
-                #print('bbb')
-                if message == 'NICK':
-                    self.client.send(self.nickname.encode('utf-8'))
+#SE EU SAIU COM CRTL+C NAO SOME DA LISTA DE CLIENTES NA SERVIDOR
+def write():
+    while True:
+        message = f'{nickname}: {input("")}'
+        #print('aqui')
+        #JA ENTENDI, A MENSAGEM NAO E A QUE TA NO SERVIDOR
+        #ENTAO TEM QUE MODIFICAR AQUI COM ALGUMA QUEBRA, OU
+        #QUE TALVEZ SEJA MELHOR, NO PROPRIO SERVIDOR, MAS ANTES
+        #VER COMO FOI FEITO PELO RICARDO
+        if message:
+            print(message)
+            if message == '/SAIR':
+                client.send(message.encode('utf-8'))
+                print('Sessão encerrada!')
+                client.close()
+                exit()
+            elif message == 'sair': #TIRAR ISSO DEPOIS
+                exit()
+            else:        
+                client.send(message.encode('utf-8'))
 
-                else:
-                    print(message)
-            except:
-                print('And error occurred!')
-                self.client.close()
-                break
-
-    def write(self):
-        while True:
-            message = f'{self.nickname}: {input("")}'
-            if message:
-                if message == '/SAIR':
-                    self.client.send(message.encode('utf-8'))
-                    print('Sessão encerrada!')
-                    self.client.close()
-                    exit()    
-                else:        
-                    self.client.send(message.encode('utf-8'))
-
-    receive_thread = threading.Thread(target=receive)
-    receive_thread.daemon = True
-    receive_thread.start()
-    write_thread = threading.Thread(target=write)
-    write_thread.daemon = True
-    write_thread.start()
-
-client = Cliente()
+receive_thread = threading.Thread(target=receive)
+#receive_thread.daemon = True
+receive_thread.start()
+write_thread = threading.Thread(target=write)
+#write_thread.daemon = True
+write_thread.start()

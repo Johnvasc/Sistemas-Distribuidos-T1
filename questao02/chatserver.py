@@ -18,9 +18,9 @@ class Servidor():
         receive_clients = threading.Thread(target=self.receive)
         receive_clients.daemon = True
         receive_clients.start()
-        handle_clients = threading.Thread(target=self.handle)
-        handle_clients.daemon = True
-        handle_clients.start()
+        #handle_clients = threading.Thread(target=self.handle)
+        #handle_clients.daemon = True
+        #handle_clients.start()
 
         while True:
             message = input('/> ')
@@ -49,41 +49,40 @@ class Servidor():
         self.nicknames.remove(nickname)
 
     #Não sei se precisa entrar com client tambem (nem pode kk)
-    def handle(self):
+    def handle(self, client):
         while True:
             if len(self.clientes_atuais) > 0:
-                for client in self.clientes_atuais:
-                    try:
-                        message = client.recv(1024).decode('utf-8')
-                        if message:
-                            msg_client = message.split('/')
-                            if len(msg_client) > 1:
-                                if msg_client[1] == 'USUARIOS':
-                                    msg_online = 'Mensagem do Servidor!\nUsuarios onlines:\n'
-                                    #Depois posso tentar por a parte dos online
-                                    for on in self.clientes_atuais:
-                                        print(self.clientes_atuais[on])
-                                        msg_online += "{} \n".format(str(self.clientes_atuais[on][0]))
-                                    print(msg_online)
-                                    self.msg_solo(msg_online,client)
-                                elif msg_client[1] == 'SAIR':
-                                    self.leave_chat(client)
-                                else:
-                                    wrong_msg = "Comando invalido.\nComandos válidos: /USUARIOS\n/SAIR\n"
-                                    print(wrong_msg)
-                                    client.send(wrong_msg)
-                        else:
-                            msg_chat = message.decode('utf-8')
-                            self.broadcast(msg_chat)
-                        
-                    except:
-                        index = self.clientes_atuais.index(client)
-                        self.clientes_atuais.remove(client)
-                        client.close()
-                        nickname = self.nicknames[index]
-                        self.broadcast(f'{nickname} left the chat!'.encode('utf-8'))
-                        self.nicknames.remove(nickname)
-                        break
+                try:
+                    message = client.recv(1024).decode('utf-8')
+                    if message:
+                        msg_client = message.split('/')
+                        if len(msg_client) > 1:
+                            if msg_client[1] == 'USUARIOS':
+                                msg_online = 'Mensagem do Servidor!\nUsuarios onlines:\n'
+                                #Depois posso tentar por a parte dos online
+                                for on in self.clientes_atuais:
+                                    print(self.clientes_atuais[on])
+                                    msg_online += "{} \n".format(str(self.clientes_atuais[on][0]))
+                                print(msg_online)
+                                self.msg_solo(msg_online,client)
+                            elif msg_client[1] == 'SAIR':
+                                self.leave_chat(client)
+                            else:
+                                wrong_msg = "Comando invalido.\nComandos válidos: /USUARIOS\n/SAIR\n"
+                                print(wrong_msg)
+                                client.send(wrong_msg)
+                    else:
+                        msg_chat = message.decode('utf-8')
+                        self.broadcast(msg_chat)
+                    
+                except:
+                    index = self.clientes_atuais.index(client)
+                    self.clientes_atuais.remove(client)
+                    client.close()
+                    nickname = self.nicknames[index]
+                    self.broadcast(f'{nickname} left the chat!'.encode('utf-8'))
+                    self.nicknames.remove(nickname)
+                    break
 
     def receive(self):
         print('Pronto para receber os usuários!')
@@ -99,5 +98,9 @@ class Servidor():
             print(f'Nickname of the client is {nickname}')
             self.broadcast(f'{nickname} joined the chat!'.encode('utf-8'))
             client.send('Connected to the server!'.encode('utf-8'))
+
+            handle_clients = threading.Thread(target=self.handle, args=(client,))
+            handle_clients.daemon = True
+            handle_clients.start()
 
 server = Servidor()
