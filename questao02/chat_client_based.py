@@ -97,8 +97,6 @@ while True:
                     print('Entendo, até mais!')
                     exit()
 
-#ISSO É UM TIRO NO PÉ, O SERVER TEM QUE ESTÁ ONLINE ANTES DISSO
-#SENAO ELE PEDE O NICKNAME SEM O SERVER ESTAR ONLINE
 print('Conectado ao servidor!\n')
 
 nickname = input('Choose a nickname: ')

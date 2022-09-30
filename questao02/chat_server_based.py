@@ -1,9 +1,6 @@
-from pydoc import cli
 import socket
 import threading
 import sys
-
-#clientes_online = {}
 
 HOST='localhost'
 PORT=12345
