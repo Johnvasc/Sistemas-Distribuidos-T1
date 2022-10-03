@@ -1,13 +1,12 @@
 import socket
 import threading
+import pickle
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind(('localhost', 6789))
 s.listen(1)
 conexoes = []
 index = 0
-interrupt = {"active": True, "index": 0}
-dinossauro = True
 
 # Thread que faz a recepção de dados do gadget
 
@@ -31,6 +30,7 @@ def iotApp():
     while True:
         le = aplConn.recv(1024).decode()
         print(le)
+        #procura um gadget pela id na lista de conexões e seta i status de conexão True ou False (onn ou off)
         if le[0:3] == 'onn' or le[0:3] == 'off':
             for i in conexoes:
                 if le[4:8] == i['id']:
@@ -43,6 +43,21 @@ def iotApp():
                             print([f'o {i["nome"]} foi desabilitado!'])
                     except:
                         print('o gadget não foi encontrado!')
+        #procura a conexão do gadget pela lista de conexões e manda uma msg de ligar ou desligar
+        elif le[0:3] == 'gon' or le[0:3] == 'gof':
+            for i in conexoes:
+                if le[4:8] == i['id']:
+                    try:
+                        i['link'].sendall(bytes(le, 'utf-8'))
+                    except:
+                        print('o gadget não foi encontrado!')
+        #envia a aplicação iot a lista de conectados
+        elif le[0:3] == 'lis':
+            try:
+                data_string = pickle.dumps(conexoes)
+                aplConn.send(data_string)
+                print('banco de dados de conexoes mandado p/ o app!')
+            except: print('falha ao mandar o banco de dados')
         if not le: break
 
 while True:
@@ -54,7 +69,9 @@ while True:
     if data[0:9] == 'iotGadget':
         print(f"gadget iot encontrado\naddr:{addr}\n")
         # serialização aqui!!!!!!!!!!!!!!
-        var = {'nome': data[29:], 'id': data[13:17], 'tipo': data[21:25], 'link': conn, 'status': False}
+        if data[21:25] == 'pass': ligado = 'sempre'
+        else: ligado = 'desligado'
+        var = {'nome': data[29:], 'id': data[13:17], 'tipo': data[21:25], 'link': conn, 'status': False, 'ligado': ligado}
         conexoes.append(var)
         threading.Thread(target=gadget).start()
         index += 1
@@ -66,4 +83,11 @@ while True:
         msg = 'conectado ao servidor.'
         aplConn.sendall(bytes(msg, 'utf-8'))
         threading.Thread(target=iotApp).start()
+
+# Conexão de requisição de gadget
+    elif data[0:4] == 'actv':
+        for i in conexoes:
+            if data[5:9] == i['id']:        
+                if data[9:] == 'True': i['ligado'] = 'ligado'
+                elif data[9:] == 'False': i['ligado'] = 'desligado'
 
