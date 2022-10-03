@@ -1,14 +1,20 @@
 import socket
 import threading
-import pickle
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind(('localhost', 6789))
 s.listen(1)
 conexoes = []
+broad = []
 index = 0
 
 # Thread que faz a recepção de dados do gadget
+
+def broadcast():
+    for i in broad:
+        if i['verificado'] == False:
+            i['conexao'].sendall(bytes('Gateway reconheceu', 'utf-8'))
+            i['verificado'] == True
 
 def gadget():
     partiConn = conn
@@ -62,15 +68,16 @@ def iotApp():
 while True:
     print('aguardando conexao...')
     conn, addr = s.accept()
+    var = {'conexao': conn, 'verificado': False}
+    broad.append(var)
+    broadcast()
     data = conn.recv(1024).decode()
-
 # Conexão do gadget com o gateway
     if data[0:9] == 'iotGadget':
         print(f"gadget iot encontrado\naddr:{addr}\n")
-        # serialização aqui!!!!!!!!!!!!!!
         if data[21:25] == 'Pass': ligado = 'sempre'
         else: ligado = 'desligado'
-        var = {'nome': data[29:], 'id': data[13:17], 'tipo': data[21:25], 'link': conn, 'status': False, 'ligado': ligado}
+        var = {'nome': data[29:], 'id': data[13:17],'tipo': data[21:25], 'link': conn, 'status': False, 'ligado': ligado}
         conexoes.append(var)
         threading.Thread(target=gadget).start()
         index += 1
