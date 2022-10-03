@@ -46,7 +46,7 @@ def iotApp():
         #procura a conexão do gadget pela lista de conexões e manda uma msg de ligar ou desligar
         elif le[0:3] == 'gon' or le[0:3] == 'gof':
             for i in conexoes:
-                if le[4:8] == i['id']:
+                if le[4:8] == i['id'] and i['status'] == True:
                     try:
                         i['link'].sendall(bytes(le, 'utf-8'))
                     except:
@@ -54,7 +54,7 @@ def iotApp():
         #envia a aplicação iot a lista de conectados
         elif le[0:3] == 'lis':
             try:
-                aplConn.sendall(bytes(f'{conexoes}', 'utf-8'))
+                aplConn.sendall(bytes(f'toApl_{conexoes}', 'utf-8'))
                 print('banco de dados de conexoes mandado p/ o app!')
             except: print('falha ao mandar o banco de dados')
         if not le: break
@@ -86,7 +86,7 @@ while True:
 # Conexão de requisição de gadget
     elif data[0:4] == 'actv':
         for i in conexoes:
-            if data[5:9] == i['id']:        
+            if data[5:9] == i['id'] and i['status'] == True:        
                 if data[9:] == 'True': i['ligado'] = 'ligado'
                 elif data[9:] == 'False': i['ligado'] = 'desligado'
 

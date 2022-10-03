@@ -72,9 +72,19 @@ while 1:
             if escolha == '1':
                 msg = 'lis'
                 s.sendall(bytes(msg, 'utf-8'))
-                bdConexoes = s.recv(4096).decode('utf-8')
-                print('o banco de dados foi atualizado!')
-            print(bdConexoes)
+                j = 0
+                while 1:
+                    aux = s.recv(4096).decode('utf-8')
+                    if aux[0:5] == 'toApl' or j>10:
+                        if j>10: j = -1
+                        break
+                    j += 1    
+                if j == -1: print('nao foi possivel receber o database')
+                else:
+                    print('o banco de dados foi atualizado!')
+                    bdConexoes = aux[6:]
+                    print(bdConexoes)
+            else: print(aux)
         elif escolha == '5':
             dataReceptEnd = input('Escolha o número de dados recebidos até fechar conexão: ')
             dataReceptEnd = int(dataReceptEnd)
