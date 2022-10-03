@@ -54,8 +54,7 @@ def iotApp():
         #envia a aplicação iot a lista de conectados
         elif le[0:3] == 'lis':
             try:
-                data_string = pickle.dumps(conexoes)
-                aplConn.send(data_string)
+                aplConn.sendall(bytes(f'{conexoes}', 'utf-8'))
                 print('banco de dados de conexoes mandado p/ o app!')
             except: print('falha ao mandar o banco de dados')
         if not le: break
@@ -69,7 +68,7 @@ while True:
     if data[0:9] == 'iotGadget':
         print(f"gadget iot encontrado\naddr:{addr}\n")
         # serialização aqui!!!!!!!!!!!!!!
-        if data[21:25] == 'pass': ligado = 'sempre'
+        if data[21:25] == 'Pass': ligado = 'sempre'
         else: ligado = 'desligado'
         var = {'nome': data[29:], 'id': data[13:17], 'tipo': data[21:25], 'link': conn, 'status': False, 'ligado': ligado}
         conexoes.append(var)

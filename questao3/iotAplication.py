@@ -1,7 +1,6 @@
 from concurrent.futures import thread
 import socket
 import threading
-import pickle
 
 def Helpme():
     print('\nBem-vindo a aplicação IoT!')
@@ -22,6 +21,8 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 msg = 'iotAplication'
 s.sendall(bytes(msg, 'utf-8'))
+data = s.recv(1024).decode('utf-8')
+print(data)
 id = 0
 ola = False
 dataReceptEnd = 5
@@ -71,12 +72,9 @@ while 1:
             if escolha == '1':
                 msg = 'lis'
                 s.sendall(bytes(msg, 'utf-8'))
-                aux = s.recv(4096)
-                print(aux)
-                bdConexoes = pickle.loads(aux)
+                bdConexoes = s.recv(4096).decode('utf-8')
                 print('o banco de dados foi atualizado!')
-            for i in bdConexoes:
-                print(i)
+            print(bdConexoes)
         elif escolha == '5':
             dataReceptEnd = input('Escolha o número de dados recebidos até fechar conexão: ')
             dataReceptEnd = int(dataReceptEnd)
