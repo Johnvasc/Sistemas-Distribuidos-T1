@@ -5,49 +5,65 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind(('localhost', 6789))
 s.listen(1)
 conexoes = []
-count = 0
+index = 0
 interrupt = {"active": True, "index": 0}
+dinossauro = True
 
+# Thread que faz a recepção de dados do gadget
 
 def gadget():
+    partiConn = conn
+    partiIndex = index
     while True:
-        if interrupt['active'] == False and interrupt['index'] == addr:
-            break
-        re = conn.recv(1024).decode()
+        re = partiConn.recv(1024).decode()
         print(f"gadget disse: {re}")
-        if not data: break
-        try:
-            aplConn.sendall(bytes(re, 'utf-8'))
-        except:
-            print("nn achei o aplicativo")
+        if not re: break
+        if conexoes[partiIndex]['status'] == True:
+            try:
+                aplConn.sendall(bytes(re, 'utf-8'))
+            except:
+                print("nn achei o aplicativo")
+        else: print("mas o gateway nn enviou ao iotApp!")
+
+# Thread que faz a recepção de dados da aplicação IoT
+def iotApp():
+    print("aplicativo conectado!")
+    while True:
+        le = aplConn.recv(1024).decode()
+        print(le)
+        if le[0:3] == 'onn' or le[0:3] == 'off':
+            for i in conexoes:
+                if le[4:8] == i['id']:
+                    try:
+                        if le[0:3] == 'onn':
+                            i['status'] = True
+                            print([f'o {i["nome"]} foi habilitado!'])
+                        elif le[0:3] == 'off':
+                            i['status'] = False
+                            print([f'o {i["nome"]} foi desabilitado!'])
+                    except:
+                        print('o gadget não foi encontrado!')
+        if not le: break
 
 while True:
-    print('aguardando conexao')
+    print('aguardando conexao...')
     conn, addr = s.accept()
     data = conn.recv(1024).decode()
-#aqui faz a conexão com os gadgets iot
-    if data == 'iotGadget':
+
+# Conexão do gadget com o gateway
+    if data[0:9] == 'iotGadget':
         print(f"gadget iot encontrado\naddr:{addr}\n")
+        # serialização aqui!!!!!!!!!!!!!!
+        var = {'nome': data[29:], 'id': data[13:17], 'tipo': data[21:25], 'link': conn, 'status': False}
+        conexoes.append(var)
         threading.Thread(target=gadget).start()
-        count += 1
-        print(count)
-#aqui faz a conexão com a aplicação iot
+        index += 1
+
+# Conexão da aplicação iot com o gateway
     elif data == 'iotAplication':
-        print("aplicativo conectado!")
         aplConn = conn
         aplAddr = addr
         msg = 'conectado ao servidor.'
         aplConn.sendall(bytes(msg, 'utf-8'))
-        '''threading.Thread(target='apli')'''
-#aqui é o comando para desativar o gadget
-    elif data[0:3] == 'des':
-        interrupt['index'] = data[4:]
-        interrupt['active'] = False
-#aqui é o comando para ativar novamente o gadget
-    elif data[0:3] == 'ati':
-        num = data[5:]
-        conexoes[num] = True
-    if not data: break
-    '''conn.sendall(data.upper())
-    conn.close()
-'''
+        threading.Thread(target=iotApp).start()
+
