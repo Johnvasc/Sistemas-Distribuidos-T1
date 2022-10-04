@@ -65,7 +65,17 @@ while 1:
                 nConect -= 1
             except: print('a conexão falhou!')
         elif escolha == '3':
-            print(nConect)
+            msg = 'rec'
+            s.sendall(bytes(msg, 'utf-8'))
+            j = 0
+            while 1:
+                nConect = s.recv(1024).decode('utf-8')
+                if nConect[0:5] == 'toApl' or j>10:
+                    if j>10: j = -1
+                    break
+                j += 1    
+            if j == -1: print('nao foi possivel receber o número de gadgets')
+            nConect = int(nConect[6:])
             if nConect > 0:
                 threading.Thread(target=recept).run()
             else: print('não existe nenhum sensor conectado. Se conecte e tente novamente!')

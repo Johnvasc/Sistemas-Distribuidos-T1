@@ -8,7 +8,7 @@ conexoes = []
 broad = []
 index = 0
 
-# Thread que faz a recepção de dados do gadget
+
 
 def broadcast():
     for i in broad:
@@ -16,13 +16,26 @@ def broadcast():
             i['conexao'].sendall(bytes('Gateway reconheceu', 'utf-8'))
             i['verificado'] == True
 
+def countStatusOnline():
+    c = 0
+    for i in conexoes:
+        if i['status'] == True: c += 1
+    aplConn.sendall(bytes(f'toApl_{c}', 'utf-8'))
+
+def setStatusOffline(num):
+    conexoes[num]['status'] = False
+
+
+# Thread que faz a recepção de dados do gadget
 def gadget():
     partiConn = conn
     partiIndex = index
     while True:
         re = partiConn.recv(1024).decode()
         print(f"gadget disse: {re}")
-        if not re: break
+        if not re:
+            setStatusOffline(partiIndex)
+            break            
         if conexoes[partiIndex]['status'] == True:
             try:
                 aplConn.sendall(bytes(re, 'utf-8'))
@@ -63,6 +76,8 @@ def iotApp():
                 aplConn.sendall(bytes(f'toApl_{conexoes}', 'utf-8'))
                 print('banco de dados de conexoes mandado p/ o app!')
             except: print('falha ao mandar o banco de dados')
+        elif le[0:3] == 'rec':
+            countStatusOnline()
         if not le: break
 
 while True:
