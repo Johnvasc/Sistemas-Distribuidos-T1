@@ -18,18 +18,15 @@ def broadcast(message):
         c.send(message)
 
 def see_users(client):
-    print('entrei')
     msg_online = '\nUsuarios onlines:\n'
     aux = 0
     for clt_online in nicknames:
-        #print(msg_online)
         msg_online += "{} \n".format(str(nicknames[aux]))
         aux+=1
     msg_solo(msg_online,client)
 
 def msg_solo(msg, client):
     try:
-        print('cheguei aqui')
         client.send(msg.encode('utf-8'))
     except:
         leave_chat(client)
@@ -51,13 +48,10 @@ def handle(client):
             try:
                 message = client.recv(1024)
                 msg_decode = message.decode('utf-8')
-                #print(message)
+                print(msg_decode)
                 if msg_decode:
-                    #print('entrei')
                     if msg_decode[0] == '/':
                         if msg_decode == '/USUARIOS':
-                            #print('entrei')
-                            print(msg_decode)
                             see_users(client)
                         elif msg_decode == '/SAIR':
                             leave_chat(client)
@@ -66,11 +60,9 @@ def handle(client):
                             wrong_msg = "Comando invalido.\nLista de comandos válidos: \n/USUARIOS\n/SAIR\n"
                             client.send(wrong_msg.encode('utf-8'))
                     else:
-                        #print(message)
                         broadcast(message)
                 
             except:
-                print('Errei')
                 if client in clientes_atuais:
                     leave_chat(client)
                     break
@@ -98,9 +90,6 @@ def receive():
 receive_clients = threading.Thread(target=receive)
 receive_clients.daemon = True
 receive_clients.start()
-#handle_clients = threading.Thread(target=handle)
-#handle_clients.daemon = True
-#handle_clients.start()
 
 while True:
     message = input('/> ')

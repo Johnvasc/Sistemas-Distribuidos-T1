@@ -16,23 +16,26 @@ IP_apl = socket.gethostbyname(socket.gethostname())
 PORT_apl = 1245
 ADDR_apl = (IP_apl, PORT_apl)
 
-def receive(client_socket):
+#Receber mensagens do gateway
+def receive(cliente):
     while True:
         try:
-            message = client_socket.recv(1024)
-            message_decoded = troca_msg.MensagemGateway()
-            message_decoded.ParseFromString(message)
+            mensagem = cliente.recv(1024)
+            mensagem_decod = troca_msg.MensagemGateway()
+            mensagem_decod.ParseFromString(mensagem)
 
-            print(message_decoded)
+            print(mensagem_decod)
         except Exception as e:
             print(e)
-            client_socket.close()
+            cliente.close()
             break
 
-def write(client_socket, message):
-    client_socket.send(message)
+#Enviar mensagem
+def write(cliente, mensagem):
+    cliente.send(mensagem)
 
-def lista_objetos(client_socket):
+#Listar objetos mandando requisicao para o gateway
+def lista_objetos(cliente):
     mensagem = troca_msg.MensagemAplicacao()
     mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
     mensagem.comando = "lista_objetos"
@@ -40,12 +43,13 @@ def lista_objetos(client_socket):
     print("-> Enviando mensagem...")
 
     mensagem_serial = mensagem.SerializeToString()
-    write(client_socket, mensagem_serial)
+    write(cliente, mensagem_serial)
     print("-> Mensagem enviada!")
 
     return None
 
-def estado_objeto(client_socket, objeto):
+#Saber o estado do objeto requisitado mandando requisicao para o gateway
+def estado_objeto(cliente, objeto):
     mensagem = troca_msg.MensagemAplicacao()
     mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
     mensagem.comando = "estado_objeto"
@@ -54,12 +58,13 @@ def estado_objeto(client_socket, objeto):
     print("-> Enviando mensagem...")
 
     mensagem_serial = mensagem.SerializeToString()
-    write(client_socket, mensagem_serial)
+    write(cliente, mensagem_serial)
     print("-> Mensagem enviada!")
 
     return None
 
-def mudar_estado(client_socket, valor):
+#Mudar o estado do objeto requisitado mandando requisicao para o gateway
+def mudar_estado(cliente, valor):
     mensagem = troca_msg.MensagemAplicacao()
     mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
     mensagem.comando = "mudar_estado"
@@ -68,12 +73,13 @@ def mudar_estado(client_socket, valor):
     print("-> Enviando mensagem...")
 
     mensagem_serial = mensagem.SerializeToString()
-    write(client_socket, mensagem_serial)
+    write(cliente, mensagem_serial)
     print("-> Mensagem enviada!")
 
     return None
 
-def mudar_valor(client_socket, valor):
+#Mudar o valor de algum atributo do objeto requisitado mandando requisicao para o gateway
+def mudar_valor(cliente, valor):
     mensagem = troca_msg.MensagemAplicacao()
     mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
     mensagem.comando = "mudar_valor"
@@ -82,13 +88,13 @@ def mudar_valor(client_socket, valor):
     print("-> Enviando mensagem...")
 
     mensagem_serial = mensagem.SerializeToString()
-    write(client_socket, mensagem_serial)
+    write(cliente, mensagem_serial)
     print("-> Mensagem enviada!")
 
     return None
 
 #Funcao main para receber os comandos a serem enviados ao gateway
-def main(client_socket):
+def main(cliente):
     while True: 
         time.sleep(1)     #Esperar um tempo antes de mandar outro comando (evitar spam) 
         comando = input('\nLista de comandos possiveis:\n1.lista_objetos\n2.estado_objeto nome_objeto\n3.mudar_estado nome_objeto funcao\n4.mudar_valor nome_objeto atributo valor\n\nDigite seu comando: ')
@@ -97,13 +103,13 @@ def main(client_socket):
         #Lista de opcoes possiveis
         try:
             if commando_split[0] == 'lista_objetos': #Lista objetos presentes no gateway
-                lista_objetos(client_socket)
+                lista_objetos(cliente)
             elif commando_split[0] == 'estado_objeto':  #Saber os atributos do objeto
-                estado_objeto(client_socket, commando_split[1])
+                estado_objeto(cliente, commando_split[1])
             elif commando_split[0] == 'mudar_estado':   #Mudar o estado do objeto (ligado/desligado)
-                mudar_estado(client_socket,f"{commando_split[1]} {commando_split[2]}")
+                mudar_estado(cliente,f"{commando_split[1]} {commando_split[2]}")
             elif commando_split[0] == 'mudar_valor':    #Mudar o valor do atributo (se existir) no objeto
-                mudar_valor(client_socket,f"{commando_split[1]} {commando_split[2]} {commando_split[3]}")
+                mudar_valor(cliente,f"{commando_split[1]} {commando_split[2]} {commando_split[3]}")
             else:
                 print('Comando invalido. Tente novamente!')
         except:

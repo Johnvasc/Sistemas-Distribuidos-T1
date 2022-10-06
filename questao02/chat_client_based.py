@@ -1,8 +1,6 @@
-from asyncio.windows_events import NULL
-from pydoc import cli
+
 import socket
 import threading
-import sys
 
 command_join = input('Bem-vindo!\nSe quiser participar do chat, digite o comando /ENTRAR.\nComando: ')
 
@@ -123,7 +121,7 @@ def receive():
             else:
                 print(message)
         except:
-            print('Houve um erro no recebimento de mensagens!') #NAO DA CERTO
+            print('Houve um erro!')
             stop_thread = 1
             client.close()
             break
@@ -131,16 +129,8 @@ def receive():
 def write():
     global stop_thread
     while True:
-    #PODE COLOCAR UM TRY EXCEPT AQUI COM UM BREAK NO EXCEPT
         if stop_thread == 1:
             break
-        #message = input('~> ')
-        #msg_format = f'~> {nickname}: {message}'
-        #if message[0] == '/':
-        #    client.send(message.encode('utf-8'))
-        #else:
-        #    print(msg_format)    
-        #    client.send(msg_format.encode('utf-8'))
         text = input('')
         if text[0] == '/':
             client.send(text.encode('utf-8'))
@@ -149,8 +139,7 @@ def write():
             client.send(message.encode('utf-8'))
 
 receive_thread = threading.Thread(target=receive)
-#receive_thread.daemon = True
 receive_thread.start()
+
 write_thread = threading.Thread(target=write)
-#write_thread.daemon = True
 write_thread.start()
