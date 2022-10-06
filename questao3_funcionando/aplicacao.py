@@ -1,22 +1,26 @@
 import socket
 import threading
-import messages_pb2 as messages_pb2
+import protobuf.mensagens_apl_gate_pb2 as troca_msg
 import time
 
-GATEWAY_IP = socket.gethostbyname(socket.gethostname())
-GATEWAY_PORT = 37020
-GATEWAY_ADDR = (GATEWAY_IP, GATEWAY_PORT)
-FORMAT = 'utf-8'
+#Padronizacao do formato das mensagens
+FORMAT = 'utf-8' 
 
-IP_APP = socket.gethostbyname(socket.gethostname())
-PORT_APP = 5555
-ADDR_APP = (IP_APP, PORT_APP)
+#Setando o IP e a porta do gateway que a aplicacao vai se comunicar
+IP_gateway = socket.gethostbyname(socket.gethostname())
+PORT_gateway = 12345
+ADDR_gateway = (IP_gateway, PORT_gateway)
+
+#Setando o IP e a porta da aplicacao em si
+IP_apl = socket.gethostbyname(socket.gethostname())
+PORT_apl = 1245
+ADDR_apl = (IP_apl, PORT_apl)
 
 def receive(client_socket):
     while True:
         try:
             message = client_socket.recv(1024)
-            message_decoded = messages_pb2.GatewayMessage()
+            message_decoded = troca_msg.MensagemGateway()
             message_decoded.ParseFromString(message)
 
             print(message_decoded)
@@ -26,99 +30,94 @@ def receive(client_socket):
             break
 
 def write(client_socket, message):
-    print("### Sending message")
     client_socket.send(message)
 
-def request_list_objects(client_socket):
-    command_message = messages_pb2.ApplicationMessage()
-    command_message.type = messages_pb2.ApplicationMessage.MessageType.COMMAND
-    command_message.command = "list_objects"
+def lista_objetos(client_socket):
+    mensagem = troca_msg.MensagemAplicacao()
+    mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
+    mensagem.comando = "lista_objetos"
 
-    print("### Serializing Message")
-    serialized_message = command_message.SerializeToString()
+    print("-> Enviando mensagem...")
 
-    write(client_socket, serialized_message)
-    print("### Message sent!")
-
-    return None
-
-def request_object_status(client_socket, consulted_object):
-    command_message = messages_pb2.ApplicationMessage()
-    command_message.type = messages_pb2.ApplicationMessage.MessageType.COMMAND
-    command_message.command = "request_status"
-    command_message.args = consulted_object
-
-    print("### Serializing Message")
-    serialized_message = command_message.SerializeToString()
-
-    write(client_socket, serialized_message)
-    print("### Message sended!!")
+    mensagem_serial = mensagem.SerializeToString()
+    write(client_socket, mensagem_serial)
+    print("-> Mensagem enviada!")
 
     return None
 
-def set_object_status(client_socket, args):
-    command_message = messages_pb2.ApplicationMessage()
-    command_message.type = messages_pb2.ApplicationMessage.MessageType.COMMAND
-    command_message.command = "set_status"
-    command_message.args = args
+def estado_objeto(client_socket, objeto):
+    mensagem = troca_msg.MensagemAplicacao()
+    mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
+    mensagem.comando = "estado_objeto"
+    mensagem.valor = objeto
 
-    print("### Serializing Message")
-    serialized_message = command_message.SerializeToString()
+    print("-> Enviando mensagem...")
 
-    write(client_socket, serialized_message)
-    print("### Message sended")
-
-    return None
-
-def set_object_attributes(client_socket, args):
-    command_message = messages_pb2.ApplicationMessage()
-    command_message.type = messages_pb2.ApplicationMessage.MessageType.COMMAND
-    command_message.command = "set_attributes"
-    command_message.args = args
-
-    print("### Serializing Message")
-    serialized_message = command_message.SerializeToString()
-
-    write(client_socket, serialized_message)
-    print("### Message sended")
+    mensagem_serial = mensagem.SerializeToString()
+    write(client_socket, mensagem_serial)
+    print("-> Mensagem enviada!")
 
     return None
 
+def mudar_estado(client_socket, valor):
+    mensagem = troca_msg.MensagemAplicacao()
+    mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
+    mensagem.comando = "mudar_estado"
+    mensagem.valor = valor
+
+    print("-> Enviando mensagem...")
+
+    mensagem_serial = mensagem.SerializeToString()
+    write(client_socket, mensagem_serial)
+    print("-> Mensagem enviada!")
+
+    return None
+
+def mudar_valor(client_socket, valor):
+    mensagem = troca_msg.MensagemAplicacao()
+    mensagem.tipo = troca_msg.MensagemAplicacao.TipoMensagem.COMANDO
+    mensagem.comando = "mudar_valor"
+    mensagem.valor = valor
+
+    print("-> Enviando mensagem...")
+
+    mensagem_serial = mensagem.SerializeToString()
+    write(client_socket, mensagem_serial)
+    print("-> Mensagem enviada!")
+
+    return None
+
+#Funcao main para receber os comandos a serem enviados ao gateway
 def main(client_socket):
     while True: 
-        time.sleep(1)
-        command = input('\nWrite a command:')
-        command_split = command.split()
+        time.sleep(1)     #Esperar um tempo antes de mandar outro comando (evitar spam) 
+        comando = input('\nLista de comandos possiveis:\n1.lista_objetos\n2.estado_objeto nome_objeto\n3.mudar_estado nome_objeto funcao\n4.mudar_valor nome_objeto atributo valor\n\nDigite seu comando: ')
+        commando_split = comando.split()
+
+        #Lista de opcoes possiveis
         try:
-            if command_split[0] == 'request_list':
-                request_list_objects(client_socket)
-            elif command_split[0] == 'request_status':
-                request_object_status(client_socket, command_split[1])
-            elif command_split[0] == 'set_status':
-                set_object_status(client_socket,f"{command_split[1]} {command_split[2]}")
-            elif command_split[0] == 'set_attribute':
-                set_object_attributes(client_socket,f"{command_split[1]} {command_split[2]} {command_split[3]}")
+            if commando_split[0] == 'lista_objetos': #Lista objetos presentes no gateway
+                lista_objetos(client_socket)
+            elif commando_split[0] == 'estado_objeto':  #Saber os atributos do objeto
+                estado_objeto(client_socket, commando_split[1])
+            elif commando_split[0] == 'mudar_estado':   #Mudar o estado do objeto (ligado/desligado)
+                mudar_estado(client_socket,f"{commando_split[1]} {commando_split[2]}")
+            elif commando_split[0] == 'mudar_valor':    #Mudar o valor do atributo (se existir) no objeto
+                mudar_valor(client_socket,f"{commando_split[1]} {commando_split[2]} {commando_split[3]}")
             else:
-                print('Invalid Command!')
+                print('Comando invalido. Tente novamente!')
         except:
-            print('Invalid Command!')
+            print('Comando invalido. Tente novamente!')
 
-# conecta via tcp com o servidor
+#Abertura de conexao via TCP com o gateway
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.bind(ADDR_APP)
-client_socket.connect(GATEWAY_ADDR)
-print("### Connected with Gateway")
+client_socket.bind(ADDR_apl)
+client_socket.connect(ADDR_gateway)
+print("-> Conectado com o Gateway!")
 
-# início da thread para fica escutando o server
+#Thread para ficar recebendo as mensagens do gateway
 receive_thread = threading.Thread(target=receive, args=(client_socket,  ))
 receive_thread.start()
-print("### Listening gateway's answer")
+print("-> Pronto para receber as mensagens do Gateway!")
 
 main(client_socket)
-
-# commands:
-# request_list_objects(client_socket)
-# request_object_status(client_socket, 'Lamp')
-# set_object_status(client_socket, 'AC true')
-# set_object_attributes(client_socket, 'AC temp 37')
-# request_object_status(client_socket, 'Sprinkler')

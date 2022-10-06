@@ -1,40 +1,45 @@
 import socket
 import threading
-import time
-
 from multicast.receive_group import receive_multicast
 
-class Client:
+class Cliente:
+    #Padronizacao do formato das mensagens
     FORMAT = "utf-8"
     
-    def get_addr_by_mult(self):
-        addr = receive_multicast().decode(Client.FORMAT)
-        # Tratando o fortmato da mensagem
+    #Pegar o endereco do gateway via multicast
+    def obj_gtw_multicast(self):
+        addr = receive_multicast().decode(Cliente.FORMAT)
+
+        # Tratando da mensagem recebida do multicast
         addr = addr.split()
         addr[1] = int(addr[1])
         addr = tuple(addr)
 
         return addr
 
-    def receive(self, client_socket):
+    #Envio de mensagens
+    def write(self, cliente, mensagem):
+        cliente.send(mensagem.encode(Cliente.FORMAT))
+
+    #Receber mensagens do gateway
+    def receive(self, cliente):
         while True:
             try:
-                message = client_socket.recv(1024).decode(Client.FORMAT)
-                print(message)
+                mensagem = cliente.recv(1024).decode(Cliente.FORMAT)
+                print(mensagem)
             except:
-                print("An error occured!")
-                client_socket.close()
+                print("Ocorreu um erro!")
+                cliente.close()
                 break
 
-    def write(self, client_socket, msg):
-        client_socket.send(msg.encode(Client.FORMAT))
-
-    def connect_tcp(self, addr):
+    #Abrir conexao via TCP do objeto com o gateway
+    def obj_gtw_tcp(self, addr):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print(addr)
         client_socket.connect(addr)
-        print("Connected to Gateway!")
+        print("Conectado ao gateway!")
 
+        #Abrir thread para receber mensagens do gateway
         receive_thread = threading.Thread(target = self.receive, args=(client_socket,))
         receive_thread.start()
 

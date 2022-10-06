@@ -1,23 +1,27 @@
+
 import socket
 import struct
-import sys
 
-def send_multicast(message):
-    multicast_group = ('224.3.29.71', 10000)
+FORMAT = "utf-8"
+
+def send_multicast(mensagem):
+    #Endereco do grupo
+    grupo_multicast = ('224.1.1.1', 24865)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
     sock.settimeout(0.2)
 
-    # Seta o time-to-live da mensagem para 1 
+    #Tempo de vida da mensagem
     ttl = struct.pack('b', 1)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
 
+    #Tenta enviar a mensagem pelo multicast
     try:
-        print('Sending by multicast "%s"\n' %message)
-        message = message.encode('UTF-8')
-        sock.sendto(message, multicast_group)
+        print(f'Enviando pelo multicast: {mensagem}\n')
+        mensagem = mensagem.encode(FORMAT)
+        sock.sendto(mensagem, grupo_multicast)
 
+    #Independente de ter enviado ou nao, eh fechada a conexao
     finally:
-        print('Closing multicast socket\n')
+        print('Comunicacao multicast fechada!\n')
         sock.close()

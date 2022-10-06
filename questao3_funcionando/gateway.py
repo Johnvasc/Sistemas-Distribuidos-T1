@@ -1,138 +1,153 @@
 import socket
-import time
 import threading
-import messages_pb2 as messages_pb2
-
+import protobuf.mensagens_apl_gate_pb2 as troca_msg
 from multicast.send_group import send_multicast 
 
-IP = socket.gethostbyname(socket.gethostname())
-PORT = 37020
-ADDR = (IP, PORT)
+#Padronizacao do formato das mensagens
 FORMAT = "utf-8"
 
-ADDR_APP = ('192.168.1.103', 5555)
-socket_app = []
+#Setando o IP e a porta do gateway
+IP_gateway = socket.gethostbyname(socket.gethostname())
+PORT_gateway = 12345
+ADDR_gateway = (IP_gateway, PORT_gateway)
 
-clients_types = []
-clients = []
-ac_info = ''
+#Endereco da aplicacao
+ADDR_apl = ('192.168.1.103', 1245)
 
-def start_server():
-    server_tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_tcp_socket.bind(ADDR)
-    server_tcp_socket.listen()
-    print("Gateway On!\n")
-    return server_tcp_socket
+v_tipos_clientes = []
+v_clientes = []
+apl_socket = [] #Vou precisar para mandar mensagens dos objetos a aplicacao passando pelo gateway
+ac_infos = ''   #Constantemente precisa saber disso
 
-def send_gateway_address():
-    message = f"{IP} {PORT}"
-    send_multicast(message)
+#Enviar o IP e porta via multicast
+def gateway_msg_multicast():
+    mensagem = f"{IP_gateway} {PORT_gateway}"
+    send_multicast(mensagem)
 
-def send_command_to_object(client_index, message):
-    clients[client_index].send(message.encode(FORMAT))
+#Enviar mensagem do gateway para um objeto
+def gateway_objeto(index_objeto, mensagem):
+    v_clientes[index_objeto].send(mensagem.encode(FORMAT))
 
 def handle(client):    
     while True:
         try:
-            answer = messages_pb2.GatewayMessage()
-            answer.response_type = messages_pb2.GatewayMessage.MessageType.GET
+            #Para poder se comunicar com a aplicacao
+            mensagem = troca_msg.MensagemGateway()
+            mensagem.tipo_resposta = troca_msg.MensagemGateway.TipoMensagem.PEGAR
 
-            message = client.recv(1024)
-            message_decoded = message.decode(FORMAT)
+            #Para receber mensagem do objeto
+            msg_objeto = client.recv(1024)
+            msg_objeto_d = msg_objeto.decode(FORMAT)
 
-            if message_decoded.split()[0] == 'acinfo':
-                global ac_info 
-                ac_info = f"AC {message_decoded.split()[1]} {message_decoded.split()[2]}"
-                print(ac_info)
+            #Infos do ar-condicionado
+            if msg_objeto_d.split()[0] == 'AC':
+                global ac_infos 
+                ac_infos = f"AC {msg_objeto_d.split()[1]} {msg_objeto_d.split()[2]}"
+                print(ac_infos)
 
-            elif message_decoded.split()[0] == 'lampinfo' or message_decoded.split()[0] == 'sprinklerinfo':
-                info = message_decoded
+            #Infos dos demais objetos
+            elif msg_objeto_d.split()[0] == 'Lamp' or msg_objeto_d.split()[0] == 'Irrig':
+                info = msg_objeto_d
                 print(info)
                 
-                iobject = answer.object.add()
-                iobject.type = message_decoded.split()[0]
-                iobject.status = info.split()[1]
+                objeto_aux = mensagem.objeto.add()
+                objeto_aux.tipo = msg_objeto_d.split()[0]
+                objeto_aux.estado = info.split()[1]
 
-                answer_serialized = answer.SerializeToString()
-                socket_app[0].send(answer_serialized)
+                mensagem_serial = mensagem.SerializeToString()
+                apl_socket[0].send(mensagem_serial)
 
+            #So retorna pra conexao normal
             else:
-                answer = 'Return of gateway: You are connected by TCP\n'
-                client.send(answer.encode(FORMAT))
+                mensagem = 'Conexao com o gateway estabelecida via TCP!\n'
+                client.send(mensagem.encode(FORMAT))
 
         except Exception as e:
             print(e)
             client.close()
             break
 
-def return_sensors(client, request_object):
-    answer = messages_pb2.GatewayMessage()
-    answer.response_type = messages_pb2.GatewayMessage.MessageType.GET
+#Funcao para objeto sensor com intuito de saber seus estados
+def sensor(objeto):
+    mensagem = troca_msg.MensagemGateway()
+    mensagem.tipo_resposta = troca_msg.MensagemGateway.TipoMensagem.PEGAR
 
-    if request_object == "AC":
-        info = ac_info
+    if objeto == "AC":
+        info = ac_infos
 
-    iobject = answer.object.add()
-    iobject.type = info.split()[0]
-    iobject.temp = int(info.split()[1])
-    iobject.status = info.split()[2]
+    #Separa todas as infos
+    objeto_aux = mensagem.objeto.add()
+    objeto_aux.tipo = info.split()[0]
+    objeto_aux.temp = int(info.split()[1])
+    objeto_aux.estado = info.split()[2]
 
-    answer_serialized = answer.SerializeToString()
-    socket_app[0].send(answer_serialized)
+    mensagem_serial = mensagem.SerializeToString()
+    apl_socket[0].send(mensagem_serial)
 
-def return_list_object(client):
-    answer = messages_pb2.GatewayMessage()
-    answer.response_type = messages_pb2.GatewayMessage.MessageType.LIST
+#Listagem dos objetos conectados
+def lista_objetos_gtw(client):
+    mensagem = troca_msg.MensagemGateway()
+    mensagem.tipo_resposta = troca_msg.MensagemGateway.TipoMensagem.LISTAR
     
-    for o in clients_types:
-        iobject = answer.object.add()
-        iobject.type = o
+    #Armazenar todos os tipos de objetos
+    for i in v_tipos_clientes:
+        tipo_ob = mensagem.objeto.add()
+        tipo_ob.tipo = i
 
-    answer_serialized = answer.SerializeToString()
+    mensagem_serial = mensagem.SerializeToString()
+    client.send(mensagem_serial)
 
-    client.send(answer_serialized)
+#Apresentar todos os estados do objeto requerido
+def estado_objeto_gtw(objeto):
 
-def request_object_status(client, consulted_object):
+    objeto_aux = objeto
 
-    iobject = consulted_object
-    for i in range(0, len(clients_types)):
-        if clients_types[i] == iobject:
-            if iobject == "AC":
-                return_sensors(client, iobject)
+    #Como os estados mudam dependendo do objeto, procuro por tipo de objeto
+    for i in range(0, len(v_tipos_clientes)):
+        if v_tipos_clientes[i] == objeto_aux:
+            if objeto_aux == "AC":
+                sensor(objeto_aux)
             else:
-                send_command_to_object(i , f"request_status")
+                gateway_objeto(i , f"estado_objeto")
 
-def set_object_status(client, args):
-    iobject, new_status = args.split()[0], args.split()[1]
+#Setar um estado para o objeto requerido
+def mudar_estado_gtw(valor):
+    objeto_aux = valor.split()[0]
+    novo_estado = valor.split()[1]
 
-    for i in range(0, len(clients_types)):
-        if clients_types[i] == iobject:
-            send_command_to_object(i , f"set_status {new_status}")
+    for i in range(0, len(v_tipos_clientes)):
+        if v_tipos_clientes[i] == objeto_aux:
+            gateway_objeto(i , f"mudar_estado {novo_estado}")
 
-def set_object_attributes(client, args):
-    iobject, changed_attribute, new_value = args.split()[0], args.split()[1], args.split()[2]
+#Setar um valor para um atributo do objeto requerido
+def mudar_valor_gtw(valor):
+    objeto_aux = valor.split()[0]
+    atributo = valor.split()[1]
+    novo_valor = valor.split()[2]
 
-    for i in range(0, len(clients_types)):
-        if clients_types[i] == iobject:
-            send_command_to_object(i , f"set_{changed_attribute} {new_value}")
+    for i in range(0, len(v_tipos_clientes)):
+        if v_tipos_clientes[i] == objeto_aux:
+            gateway_objeto(i , f"mudar_{atributo} {novo_valor}")
 
-def application_handle(client):
+def handle_aplicacao(client):
     while True:
         try:
-            print("Waiting application's messages")
-            message = client.recv(1024)
-            message_decoded = messages_pb2.ApplicationMessage()
-            message_decoded.ParseFromString(message)
+            #Fica esperando a aplicacao enviar algum comando
+            print("Esperando comando da aplicacao...")
+            mensagem = client.recv(1024)
+            mensagem_recebida = troca_msg.MensagemAplicacao()
+            mensagem_recebida.ParseFromString(mensagem)
             
-            if message_decoded.type == 1:
-                if message_decoded.command == 'list_objects':
-                    return_list_object(client)
-                elif message_decoded.command == 'request_status':
-                    request_object_status(client, message_decoded.args)
-                elif message_decoded.command == 'set_status':
-                    set_object_status(client, message_decoded.args)
-                elif message_decoded.command == 'set_attributes':
-                    set_object_attributes(client, message_decoded.args)
+            #Dependendo do comando, caira em alguma das condicoes abaixo
+            if mensagem_recebida.tipo == 1:
+                if mensagem_recebida.comando == 'lista_objetos':
+                    lista_objetos_gtw(client)
+                elif mensagem_recebida.comando == 'estado_objeto':
+                    estado_objeto_gtw(mensagem_recebida.valor)
+                elif mensagem_recebida.comando == 'mudar_estado':
+                    mudar_estado_gtw(mensagem_recebida.valor)
+                elif mensagem_recebida.comando == 'mudar_valor':
+                    mudar_valor_gtw(mensagem_recebida.valor)
                 else:
                     pass
         except Exception as e:
@@ -140,33 +155,40 @@ def application_handle(client):
             client.close()
             break
                     
-def connect_client_by_tcp(server_tcp_socket):
-    print("Waiting TCP's connections...\n")
+def main(gateway_socket):
+    print("Esperando clientes...\n")
     
     while True:
         try:
-            client, address = server_tcp_socket.accept()
-            #print(address)
+            #Aceitando requisicoes
+            client, address = gateway_socket.accept()
 
-            # encaminhamento para a thread que irá lidar com as requisições da applicação ou para a thread dos objetos
-            if address == ADDR_APP: 
-                socket_app.append(client)
-                application_thread = threading.Thread(target=application_handle, args=(client,))
-                application_thread.start()
+            #Criacao thread para cuidar das requisicoes apenas da aplicacao
+            if address == ADDR_apl: 
+                apl_socket.append(client)
+                thread_aplicacao = threading.Thread(target=handle_aplicacao, args=(client,))
+                thread_aplicacao.start()
+
+            #Criacao thread para cuidar das requisicoes apenas dos objetos
             else:
-                # registra os clientes antes de iniciar a thread
-                client_type = client.recv(1024).decode(FORMAT)
+                #Saber inicialmente que tipo de objeto o cliente eh
+                tipo_cliente = client.recv(1024).decode(FORMAT)
                 
-                clients_types.append(client_type)
-                clients.append(client)
+                v_tipos_clientes.append(tipo_cliente)   #Salvar o tipo do cliente
+                v_clientes.append(client)   #Salvar o cliente em si
             
-                print("Connected to {}\n".format(str(address)))
+                print(f"Conectado com {str(address)}\n")
 
-                thread = threading.Thread(target=handle, args=(client,))
-                thread.start()
+                thread_objeto = threading.Thread(target=handle, args=(client,))
+                thread_objeto.start()
         except Exception as e:
             print(e)
 
-server_tcp_socket = start_server()
-send_gateway_address()
-connect_client_by_tcp(server_tcp_socket)
+#Criando gateway com conexao TCP
+gateway_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+gateway_socket.bind(ADDR_gateway)
+gateway_socket.listen()
+print("Gateway pronto!\n")
+
+gateway_msg_multicast() #Enviando o IP e a porta do gateway via multicast para todos
+main(gateway_socket)

@@ -1,0 +1,34 @@
+//Sintaxe do protobuf
+syntax = "proto3";
+
+//Estruturacao das mensagens da aplicacao e seus campos
+message MensagemAplicacao {
+  enum TipoMensagem {
+      IDENTIFICADOR = 0;
+      COMANDO = 1;
+  }
+
+  TipoMensagem tipo = 1;
+  string comando = 2;
+  string valor = 3;
+}
+
+//Estrutura dos campos dos objetos (objetos inteligentes)
+message Objeto {
+  string endereco = 1;
+  string tipo = 2;
+  string estado = 3;
+  int32 temp = 4;
+}
+
+//Estruturacao das mensagens do gateway e seus campos
+message MensagemGateway {
+  enum TipoMensagem {
+      ATUALIZAR = 0;
+      PEGAR = 1;
+      LISTAR = 2;
+  }
+
+  TipoMensagem tipo_resposta = 1;
+  repeated Objeto objeto = 2;
+}
