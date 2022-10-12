@@ -22,7 +22,11 @@ ac_infos = ''   #Constantemente precisa saber disso
 #Enviar o IP e porta via multicast
 def gateway_msg_multicast():
     mensagem = f"{IP_gateway} {PORT_gateway}"
-    send_multicast(mensagem)
+    while True:
+        try:
+            send_multicast(mensagem)
+        except:
+            print('Mensagem ao multicast nao enviada!')
 
 #Enviar mensagem do gateway para um objeto
 def gateway_objeto(index_objeto, mensagem):
@@ -36,6 +40,8 @@ def handle(client):
             mensagem.tipo_resposta = troca_msg.MensagemGateway.TipoMensagem.PEGAR
 
             #Para receber mensagem do objeto
+
+            #bota um try aqui
             msg_objeto = client.recv(1024)
             msg_objeto_d = msg_objeto.decode(FORMAT)
 
@@ -190,5 +196,7 @@ gateway_socket.bind(ADDR_gateway)
 gateway_socket.listen()
 print("Gateway pronto!\n")
 
-gateway_msg_multicast() #Enviando o IP e a porta do gateway via multicast para todos
+thread_multicast = threading.Thread(target=gateway_msg_multicast)
+thread_multicast.start()
+#gateway_msg_multicast() #Enviando o IP e a porta do gateway via multicast para todos
 main(gateway_socket)

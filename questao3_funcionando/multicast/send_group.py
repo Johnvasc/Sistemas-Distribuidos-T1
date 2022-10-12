@@ -1,6 +1,7 @@
 
 import socket
 import struct
+import time
 
 FORMAT = "utf-8"
 
@@ -15,13 +16,17 @@ def send_multicast(mensagem):
     ttl = struct.pack('b', 1)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
 
-    #Tenta enviar a mensagem pelo multicast
     try:
+        #Tenta enviar a mensagem pelo multicast
         print(f'Enviando pelo multicast: {mensagem}\n')
+        time.sleep(10)
         mensagem = mensagem.encode(FORMAT)
         sock.sendto(mensagem, grupo_multicast)
-
-    #Independente de ter enviado ou nao, eh fechada a conexao
-    finally:
+    except:
         print('Comunicacao multicast fechada!\n')
         sock.close()
+
+    #Independente de ter enviado ou nao, eh fechada a conexao
+    #finally:
+    #    print('Comunicacao multicast fechada!\n')
+    #    sock.close()

@@ -1,3 +1,4 @@
+from pydoc import cli
 import socket
 import threading
 import protobuf.mensagens_apl_gate_pb2 as troca_msg
@@ -32,7 +33,12 @@ def receive(cliente):
 
 #Enviar mensagem
 def write(cliente, mensagem):
-    cliente.send(mensagem)
+    try:
+        cliente.send(mensagem)
+    except:
+        print('Gateway desconectado!')
+        cliente.close()
+        exit()
 
 #Listar objetos mandando requisicao para o gateway
 def lista_objetos(cliente):
@@ -113,7 +119,9 @@ def main(cliente):
             else:
                 print('Comando invalido. Tente novamente!')
         except:
-            print('Comando invalido. Tente novamente!')
+            print('Gateway desconectado!')
+            print('Até!\n')
+            exit()
 
 #Abertura de conexao via TCP com o gateway
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
