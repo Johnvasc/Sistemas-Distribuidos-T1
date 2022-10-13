@@ -41,7 +41,6 @@ def handle(client):
 
             #Para receber mensagem do objeto
 
-            #bota um try aqui
             msg_objeto = client.recv(1024)
             msg_objeto_d = msg_objeto.decode(FORMAT)
 
@@ -70,6 +69,11 @@ def handle(client):
 
         except Exception as e:
             print(e)
+            index = v_clientes.index(client)
+            print(f'{v_tipos_clientes[index]} desconectado!')
+            v_clientes.remove(client)
+            tipo_excluido = v_tipos_clientes[index]
+            v_tipos_clientes.remove(tipo_excluido)
             client.close()
             break
 

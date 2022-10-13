@@ -18,8 +18,8 @@ def send_multicast(mensagem):
 
     try:
         #Tenta enviar a mensagem pelo multicast
-        print(f'Enviando pelo multicast: {mensagem}\n')
         time.sleep(10)
+        print(f'Enviando pelo multicast: {mensagem}\n')
         mensagem = mensagem.encode(FORMAT)
         sock.sendto(mensagem, grupo_multicast)
     except:
