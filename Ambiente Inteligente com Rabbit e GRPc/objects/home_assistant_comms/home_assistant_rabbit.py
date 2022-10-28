@@ -18,8 +18,10 @@ class HomeAssistantRabbit():
       msg = body.decode(FORMAT)
       new_queue = msg.split()[0]
 
+      #Criando comunicacao via gRPC
       self.create_new_remote_object(msg)
       
+      #Thread de consumo da nova fila criada
       queue_thread = threading.Thread(target = rr.consume_queue, args = (new_queue, callback_queue), daemon = True)
       queue_thread.start()
 

@@ -1,7 +1,6 @@
+
 import socket
 import threading
-
-from generated import object_pb2_grpc
 from generated import object_pb2
 
 FORMAT = 'UTF-8'

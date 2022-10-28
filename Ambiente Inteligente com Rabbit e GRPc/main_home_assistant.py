@@ -1,10 +1,11 @@
+
 from objects.home_assistant import HomeAssistant
-#from generated import object_pb2_grpc
-#from generated import object_pb2
-#import time
 import socket
 
+#Definicao do "objeto" Home assistant
 home_assistant = HomeAssistant()
+
+#Estabelecendo conexao via RabbitMQ
 connection, channel = home_assistant.connect_rabbit()
 
 home_assistant.start_principal_queue()
