@@ -1,5 +1,7 @@
+
 from generated import object_pb2
 from generated import object_pb2_grpc
+
 
 class ObjectServicer(object_pb2_grpc.ObjectServicer):
   def __init__(self, object):

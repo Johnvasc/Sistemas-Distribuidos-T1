@@ -1,9 +1,9 @@
+
 from objects.sprinkler import Sprinkler
 
 from objects.grpc_logic.object_servicer import ObjectServicer
 from concurrent import futures
 from generated import object_pb2_grpc
-from generated import object_pb2
 import grpc
 
 #-----------------Setup de variáveis

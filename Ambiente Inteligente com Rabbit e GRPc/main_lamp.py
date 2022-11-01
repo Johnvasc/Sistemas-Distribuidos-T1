@@ -1,19 +1,24 @@
+
 from objects.lamp import Lamp
 
 from objects.grpc_logic.object_servicer import ObjectServicer
 from concurrent import futures
 from generated import object_pb2_grpc
-from generated import object_pb2
 import grpc
 
-#-----------------Setup de variáveis
+#Nome das filas criadas pelo home assistant
 queue_principal = 'home'
 end_queue = 'close'
 
+#Nome da fila e do objeto que ficara salvo em uma lista no home assistant
 name_queue = input('Nome da Lâmpada: ')
+#Luminosidade atual do ambiente
+#Talvez se ja setasse um valor fixo, e pra cada lampada so somasse esse valor...
 lum_inicial = input("Qual a luminosidade ambiente (em %)? ")
+#Porta de comunicacao
 lamp_port = input("Port: ")
 
+#Status inicial do objeto
 lamp = Lamp(False, lum_inicial, name_queue)
 
 #----------------RabbitMQ setup

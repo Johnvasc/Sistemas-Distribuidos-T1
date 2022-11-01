@@ -11,6 +11,7 @@ FORMAT = 'UTF-8'
 CONNECTION = False
 
 #IP da aplicacao/Porta da aplicacao
+#ip_server = 'localhost'
 ip_server = socket.gethostbyname(socket.gethostname())
 port = 12356
 
@@ -27,6 +28,7 @@ def receive(client_socket):
         try:
             message = client_socket.recv(1024).decode(FORMAT)
             print(message)
+            #Caso nao seja recebida a mensagem ou ocorra algum problema, a conexao eh fechada
             if not message:
                 print("\nConexão perdida...")
                 CONNECTION = False
@@ -100,9 +102,11 @@ while app_socket == None:
         client_socket.connect(ADDR)
         print("Server Conected!")
 
+        #Inicializacao da thread para receber mensagens
         receive_thread = threading.Thread(target=receive, args=(client_socket,), daemon = True)
         receive_thread.start()
 
+        #Inicializacao da thread para enviar comandos (requisicoes)
         receive_thread = threading.Thread(target=command_line, args=(client_socket,), daemon = True)
         receive_thread.start()
 

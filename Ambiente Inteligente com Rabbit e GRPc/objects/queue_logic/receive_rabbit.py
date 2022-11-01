@@ -7,7 +7,7 @@ def connect():
     channel = connection.channel()
     return connection, channel
 
-#Funcao de consumo de mensagens nas filas
+#Funcao de consumo de mensagens nas filas (qualquer fila)
 def consume_queue(name_queue, callback):
     connection, channel = connect()
     channel.queue_declare(queue = name_queue) 
