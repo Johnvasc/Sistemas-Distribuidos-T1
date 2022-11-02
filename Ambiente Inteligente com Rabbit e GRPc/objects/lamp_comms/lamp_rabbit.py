@@ -1,4 +1,4 @@
-# ---------------------------- lógica RabbitMQ
+
 from objects.queue_logic.publisher_queue_objects import PublisherQueueObjects
 import threading
 

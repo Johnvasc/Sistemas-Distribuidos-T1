@@ -16,12 +16,14 @@ class Lamp(LampRabbit):
     #Ligar o objeto
     def on(self):
         self.state = True
+        #Atualiza a luminosidade ambiente se uma nova luminosidade for setada
         self.ambient_luminosity = self.target_luminosity
         return self.state
 
     #Desligar o objeto
     def off(self):
         self.state = False
+        #Objeto desligado, volta para a luminosidade ambiente
         self.ambient_luminosity = self.inicial_luminosity
         return self.state
 
@@ -30,5 +32,6 @@ class Lamp(LampRabbit):
         #rate = novo valor
         self.target_luminosity = rate
         if self.state == True:
+            #Atualiza a luminosidade ambiente
             self.ambient_luminosity = self.target_luminosity
         return self.target_luminosity

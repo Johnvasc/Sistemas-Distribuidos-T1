@@ -1,5 +1,9 @@
+
+//Sintaxe usada para o protobuf
 syntax = "proto3";
 
+//Servico usado: Um RPC simples em que o cliente envia uma solicitacao ao servidor
+//usando o stub e aguarda a resposta de volta, assim como uma chamada de funcao normal.
 service Object {
     rpc On(Empty) returns (RespondState) {}
     rpc Off(Empty) returns (RespondState) {}
@@ -8,20 +12,23 @@ service Object {
 
 message Empty {}
 
+//Estado do objeto
 message RespondState {
     bool state = 1;
 }
 
+//Novo valor do atributo requisitado
 message NewAttribute {
     float value = 2;
 }
 
+//Resposta ao novo atributo requisitado
 message RespondAttribute {
     float value = 3;
 }
 
 
 /*
-Executar na pasta protos para compilar
+Codigo para compilar o .proto:
 python -m grpc_tools.protoc -I. --python_out=../generated --grpc_python_out=../generated object.proto
 */

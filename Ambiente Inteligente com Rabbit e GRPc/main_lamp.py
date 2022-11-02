@@ -21,23 +21,33 @@ lamp_port = input("Port: ")
 #Status inicial do objeto
 lamp = Lamp(False, lum_inicial, name_queue)
 
-#----------------RabbitMQ setup
+#---------------------------------------------------------------------------------------------
+
+#Comunicacao RabbitMQ
 connection, channel = lamp.connect_rabbit()
 
-lamp.set_queue(channel, lamp.queue) #queue do objeto ac
-lamp.set_queue(channel, queue_principal) #se liga com a queue principal
+#Cria fila para o objeto em questao
+lamp.set_queue(channel, lamp.queue)
+#Cria fila principal do home assistant, caso ela ja nao exista
+lamp.set_queue(channel, queue_principal)
+#Cria fila de termino do home assistant, caso ela ja nao exista
 lamp.set_queue(channel, end_queue)
-lamp.send_queue(channel, f"{lamp.queue} {lamp_port}", queue_principal) #envia a queue do objeto lamp pro home assistent conectar com sua fila (queue recepção)
+
+#Envio do nome da fila do objeto para o home assistent se conectar com sua fila
+lamp.send_queue(channel, f"{lamp.queue} {lamp_port}", queue_principal) 
+#Envio da mensagem com seu conteudo (nome, estado, atributo)
 lamp.send_luminosity_updates(channel)
 
-#----------------GRPC Setup
+#---------------------------------------------------------------------------------------------
 
-#lamp.start_grpc_server(lamp) -- não funciona se for encapsulado dessa forma(motivos misteriosos)
+#Comunicacao gRPC
+
 lamp_grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 object_pb2_grpc.add_ObjectServicer_to_server(ObjectServicer(lamp), lamp_grpc_server)
 lamp_grpc_server.add_insecure_port(f"localhost:{lamp_port}")
 lamp_grpc_server.start()
-#-----------------------Procurar como refatorar isso depois
+
+#---------------------------------------------------------------------------------------------
 
 input('Pressione ENTER para sair\n')
 lamp.close(connection, channel, end_queue)
