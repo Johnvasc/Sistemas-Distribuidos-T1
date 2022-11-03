@@ -50,4 +50,5 @@ lamp_grpc_server.start()
 #---------------------------------------------------------------------------------------------
 
 input('Pressione ENTER para sair\n')
+#Fecha conexao enviando o nome da fila/objeto para a fila close
 lamp.close(connection, channel, end_queue)

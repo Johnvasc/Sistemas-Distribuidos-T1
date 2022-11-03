@@ -11,9 +11,9 @@ FORMAT = 'UTF-8'
 CONNECTION = False
 
 #IP da aplicacao/Porta da aplicacao
-#ip_server = 'localhost'
-ip_server = socket.gethostbyname(socket.gethostname())
-port = 12356
+ip_server = 'localhost'
+#ip_server = socket.gethostbyname(socket.gethostname())
+port = 12345
 
 #Endereco da aplicacao
 ADDR = (ip_server, port)
@@ -127,3 +127,6 @@ app_socket.close()
 # <objeto> set_status_off
 # <objeto> set_attribute <valor>
 # <objeto> request_status true/false
+
+#Comando para criar o docker para comunicacao RbbitMQ:
+#docker run --rm -p 5672:5672 -p 8080:15672 rabbitmq:3-management
