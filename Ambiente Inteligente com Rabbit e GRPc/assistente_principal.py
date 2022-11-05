@@ -19,13 +19,13 @@ ip_server = 'localhost'
 #Porta do servidor TCP
 porta_tcp = 12345
 #Inicializacao do servidor para comunicacao com a aplicacao
-home_assistent_socket = home_assistant.start_tcp(ip_server, porta_tcp)
+socket_home_assistent = home_assistant.start_tcp(ip_server, porta_tcp)
 
 while True:
     try:
         #Esperando alguma conexao (aplicacao)
-        home_assistant.connect_tcp(home_assistent_socket)
+        home_assistant.connect_tcp(socket_home_assistent)
     except KeyboardInterrupt:
-        print('Conexao TCP finalizada!')
-        home_assistent_socket.close()
+        print('A conexão TCP foi finalizada!')
+        socket_home_assistent.close()
         break

@@ -16,31 +16,31 @@ ip_server = 'localhost'
 port = 12345
 
 #Endereco da aplicacao
-ADDR = (ip_server, port)
+endereco = (ip_server, port)
 
 #Enquanto a conexao com o Home assistant nao eh feita...
-app_socket = None
+socket_app = None
 
 #Funcao de recebimento de mensagens
-def receive(client_socket):
+def receive(socket_cliente):
     global CONNECTION
     while True:
         try:
-            message = client_socket.recv(1024).decode(FORMAT)
-            print(message)
+            mensagem = socket_cliente.recv(1024).decode(FORMAT)
+            print(mensagem)
             #Caso nao seja recebida a mensagem ou ocorra algum problema, a conexao eh fechada
-            if not message:
-                print("\nConexão perdida...")
+            if not mensagem:
+                print("\nA conexão foi perdida...")
                 CONNECTION = False
                 break
         except:
-            print("\nConexão perdida...")
+            print("\nA conexão foi perdida...")
             CONNECTION = False
             break
 
 ##Funcao de envio de mensagens
-def write(client_socket, message):
-    client_socket.send(message.encode(FORMAT))
+def write(socket_cliente, mensagem):
+    socket_cliente.send(mensagem.encode(FORMAT))
 
 #Funcao criada para apresentacao dos comandos validos para o usuario
 def get_commands():
@@ -56,11 +56,11 @@ def get_commands():
     return table_commands
 
 #Funcao de recebimento de comandos do usuario da aplicacao
-def command_line(client_socket):
+def command_line(socket_cliente):
     global CONNECTION
-    print("Seja bem vindo!")
-    print("######################")
-    print("Digite o comando desejado, para saber os comandos digite: /commands")
+    print("Olá! Bem vindo(a)!")
+    print("----------------------------------")
+    print("Digite o comando que quer realizar. Se quer saber quais os comandos digite: /commands")
     while True:
         time.sleep(3)   #Evitar spam e dar tempo de alguma modificacao ser realizada
         command = input('\nWrite a command: ')
@@ -68,12 +68,12 @@ def command_line(client_socket):
         try:
             #Lista dos diferentes comandos
             if command_split[0] == 'request_list':
-                write(client_socket, command)
+                write(socket_cliente, command)
             elif command_split[0] == 'exit':
-                write(client_socket, command)
-                print('Desconectando....')
-                client_socket.close()
-                print('Desconectado do Home Assistant')
+                write(socket_cliente, command)
+                print('Desconexão em processamento....')
+                socket_cliente.close()
+                print('Desconexão do assistente finalizada')
                 #Quebra do Loop infinito rodando na Main()
                 CONNECTION = False
                 break
@@ -81,45 +81,45 @@ def command_line(client_socket):
                 #Funcao com a tabela com os comandos validos
                 print(get_commands())
             elif command_split[1] == 'set_status_on':
-                write(client_socket, command)
+                write(socket_cliente, command)
             elif command_split[1] == 'set_status_off':
-                write(client_socket, command)
+                write(socket_cliente, command)
             elif command_split[1] == 'set_attribute':
-                write(client_socket, command)
+                write(socket_cliente, command)
             elif command_split[1] == 'request_status':
-                write(client_socket, command)
+                write(socket_cliente, command)
             else:
-                print('Invalid Command!')
+                print('Comando inválido!')
         except Exception as e:
-            print(f"Algo deu errado... \n{e}")
+            print(f"Deu algo errado... \n{e}")
 
 print('Aguardando conexão com o Home Assistant....')
-while app_socket == None:
+while socket_app == None:
     try:
         time.sleep(1)
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket_cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        client_socket.connect(ADDR)
-        print("Server Conected!")
+        socket_cliente.connect(endereco)
+        print("Servidor Conectado!")
 
         #Inicializacao da thread para receber mensagens
-        receive_thread = threading.Thread(target=receive, args=(client_socket,), daemon = True)
+        receive_thread = threading.Thread(target=receive, args=(socket_cliente,), daemon = True)
         receive_thread.start()
 
         #Inicializacao da thread para enviar comandos (requisicoes)
-        receive_thread = threading.Thread(target=command_line, args=(client_socket,), daemon = True)
+        receive_thread = threading.Thread(target=command_line, args=(socket_cliente,), daemon = True)
         receive_thread.start()
 
-        app_socket = client_socket
+        socket_app = socket_cliente
     except:
-        print("Tentando estabelecer conexão...")
+        print("Tentando estabelecer uma conexão...")
 
 #Com a conexao com o Home assistant, ficamos em um Loop infinito ate a conexao ser fechada.
 
 CONNECTION = True
 while CONNECTION: CONNECTION
 
-app_socket.close()
+socket_app.close()
 
 #Comandos validos para nao se esquecer:
 # request_list
@@ -128,5 +128,5 @@ app_socket.close()
 # <objeto> set_attribute <valor>
 # <objeto> request_status true/false
 
-#Comando para criar o docker para comunicacao RbbitMQ:
+#Comando para criar o docker para comunicacao RabbitMQ:
 #docker run --rm -p 5672:5672 -p 8080:15672 rabbitmq:3-management

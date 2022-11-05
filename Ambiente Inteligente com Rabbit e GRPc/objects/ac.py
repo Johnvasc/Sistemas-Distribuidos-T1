@@ -1,5 +1,5 @@
 
-from .ac_comms.ac_rabbit import AcRabbit
+from .ac_comunicacao.ac_rabbit import AcRabbit
 
 
 class Ac(AcRabbit): 

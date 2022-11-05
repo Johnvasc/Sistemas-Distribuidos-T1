@@ -1,5 +1,5 @@
 
-from .lamp_comms.lamp_rabbit import LampRabbit
+from .lampada_comunicacao.rabbit_lampada import LampRabbit
 
 
 class Lamp(LampRabbit): 

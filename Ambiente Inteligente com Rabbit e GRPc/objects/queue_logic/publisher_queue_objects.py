@@ -1,7 +1,7 @@
 
 #Arquivo voltado para comunicacao via RabbitMQ (filas)
 
-from objects.queue_logic import send_rabbit as sr
+from objects.queue_logic import enviar_pra_rabbit as sr
 import time
 
 class PublisherQueueObjects():
@@ -11,20 +11,20 @@ class PublisherQueueObjects():
         return connection, channel
     
     #Criacao da fila no RabbitMQ
-    def set_queue(self, channel, name_queue):
-        sr.create_queue(channel, name_queue)
+    def set_queue(self, channel, nome_queue):
+        sr.create_queue(channel, nome_queue)
 
     #Envio constante do atributo do objeto em questao
-    def send_attribute_updates(self, channel, name_queue, attribute):
+    def send_attribute_updates(self, channel, nome_queue, attribute):
         while True:
             time.sleep(5)
             #Conteudo da mensagem a ser enviada para a fila
-            msg = f"{name_queue} {self.state} {attribute} {getattr(self, attribute)}\n"
-            sr.send_info(channel, msg, name_queue)
+            mensagem = f"{nome_queue} {self.state} {attribute} {getattr(self, attribute)}\n"
+            sr.send_info(channel, mensagem, nome_queue)
 
     #Envio do nome da propria fila para outra fila (criar conexao)
-    def send_queue(self, channel, name_queue, queue_principal):
-        sr.send_info(channel, name_queue, queue_principal)
+    def send_queue(self, channel, nome_queue, queue_principal):
+        sr.send_info(channel, nome_queue, queue_principal)
     
     #Fechamento de conexao
     def close(self, connection, channel, close_queue):

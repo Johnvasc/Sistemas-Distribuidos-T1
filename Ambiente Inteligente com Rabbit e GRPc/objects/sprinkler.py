@@ -1,5 +1,5 @@
 
-from .sprinkler_comms.sprinkler_rabbit import SprinklerRabbit
+from .sprinkler_comunicacao.rabbit_sprinkler import SprinklerRabbit
 
 
 class Sprinkler(SprinklerRabbit): 
