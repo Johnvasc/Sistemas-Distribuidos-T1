@@ -76,5 +76,5 @@ class HomeAssistantTCP():
                     client.send(object_data.encode(FORMAT))
             #Se o comando recebido nao for nenhum dos validos
             except:
-                mensagem_resposta = 'Comando Inválido... Tente novamente! =D'
+                mensagem_resposta = 'Comando invalido... Tente novamente!'
                 client.send(mensagem_resposta.encode(FORMAT))

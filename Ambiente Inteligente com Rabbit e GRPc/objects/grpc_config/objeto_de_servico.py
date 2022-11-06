@@ -20,7 +20,7 @@ class ObjectServicer(object_pb2_grpc.ObjectServicer):
     resposta.state = self.object.off()
     return resposta
 
-  #Metodo para chamar a funcaode mudar o valor do atributo do objeto
+  #Metodo para chamar a funcao de mudar o valor do atributo do objeto
   def SetAttribute(self, request, context):
     resposta = object_pb2.RespondAttribute()
     resposta.value = self.object.set_attribute(request.value)

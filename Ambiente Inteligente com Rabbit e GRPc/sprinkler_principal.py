@@ -4,6 +4,7 @@ from objects.sprinkler import Sprinkler
 from objects.grpc_config.objeto_de_servico import ObjectServicer
 from concurrent import futures
 from generated import object_pb2_grpc
+import random
 import grpc
 
 #Nome das filas criadas pelo home assistant
@@ -12,8 +13,15 @@ final_queue = 'finalizado'
 
 #Nome da fila e do objeto que ficara salvo em uma lista no home assistant
 nome_queue = input('Nome do sprinkler: ')
+
+while nome_queue == 'principal' or nome_queue == 'finalizado':
+    print('Nome nao disponiveis para uso, tente outro nome!')
+    nome_queue = input('Nome do sprinkler: ')
+
 #Umidade atual do ambiente
-umidade_inicial = input("Qual a umidade atual do solo (em %)? ")
+umidade_inicial = random.randint(25,30)
+print(f'A umidade ambiente eh {umidade_inicial}!')
+
 #Porta de comunicacao
 porta_sprinkler = input("Port: ")
 

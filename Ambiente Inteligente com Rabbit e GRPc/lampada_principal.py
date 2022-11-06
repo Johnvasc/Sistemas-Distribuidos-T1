@@ -4,6 +4,7 @@ from objects.lamp import Lamp
 from objects.grpc_config.objeto_de_servico import ObjectServicer
 from concurrent import futures
 from generated import object_pb2_grpc
+import random
 import grpc
 
 #Nome das filas criadas pelo home assistant
@@ -12,9 +13,15 @@ final_queue = 'finalizado'
 
 #Nome da fila e do objeto que ficara salvo em uma lista no home assistant
 nome_queue = input('Nome da Lâmpada: ')
+
+while nome_queue == 'principal' or nome_queue == 'finalizado':
+    print('Nome nao disponiveis para uso, tente outro nome!')
+    nome_queue = input('Nome da Lâmpada: ')
+
 #Luminosidade atual do ambiente
-#Talvez se ja setasse um valor fixo, e pra cada lampada so somasse esse valor...
-luminosidade_inicial = input("Qual a luminosidade ambiente (em %)? ")
+luminosidade_inicial = random.randint(20,25)
+print(f'A luminosidade ambiente eh {luminosidade_inicial}!')
+
 #Porta de comunicacao
 porta_lamp = input("Port: ")
 

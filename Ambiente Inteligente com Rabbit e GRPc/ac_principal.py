@@ -4,6 +4,7 @@ from objects.ac import Ac
 from objects.grpc_config.objeto_de_servico import ObjectServicer
 from concurrent import futures
 from generated import object_pb2_grpc
+import random
 import grpc
 
 #Nome das filas criadas pelo home assistant
@@ -12,8 +13,15 @@ final_queue = 'finalizado'
 
 #Nome da fila e do objeto que ficara salvo em uma lista no home assistant
 name_queue = input('Nome do AC: ')
-#Tempeatura atual do ambiente
-temperatura_inicial = input("Qual a temperatura ambiente (em °C)? ")
+
+while name_queue == 'principal' or name_queue == 'finalizado':
+    print('Nome nao disponiveis para uso, tente outro nome!')
+    name_queue = input('Nome do AC: ')
+
+#Temperatura atual do ambiente
+temperatura_inicial = random.randint(18,22)
+print(f'A temperatura ambiente eh {temperatura_inicial} graus!')
+
 #Porta de comunicacao
 porta_ac = input("Port: ")
 

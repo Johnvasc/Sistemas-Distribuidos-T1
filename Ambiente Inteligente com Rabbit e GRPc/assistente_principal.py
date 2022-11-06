@@ -15,7 +15,6 @@ home_assistant.start_end_queue()
 
 #IP do servidor TCP
 ip_server = 'localhost'
-#ip_server = socket.gethostbyname(socket.gethostname())
 #Porta do servidor TCP
 porta_tcp = 12345
 #Inicializacao do servidor para comunicacao com a aplicacao

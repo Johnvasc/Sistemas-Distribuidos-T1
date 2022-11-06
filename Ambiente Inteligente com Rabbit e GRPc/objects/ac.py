@@ -30,6 +30,7 @@ class Ac(AcRabbit):
     #Mudar o valor do atributo do objeto
     def set_attribute(self, rate):
         #rate = novo valor
+        
         self.target_temperature = rate
         if self.state == True:
             #Atualiza a temperatura ambiente
